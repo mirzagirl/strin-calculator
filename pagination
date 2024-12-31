@@ -1,0 +1,97 @@
+import { useState, useEffect } from "react";
+import users from "./data/users.json";
+
+export default function DataTable() {
+  const [totalPage, setTotalPage] = useState(0);
+  const [message, setMessage] = useState("Data Table");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUserData] = useState(() => {
+    return users.slice(0, 5);
+  });
+  const [limit, setLimit] = useState(5);
+
+  useEffect(() => {
+    if (limit) {
+      let pages = Math.ceil(users?.length / limit);
+      setTotalPage(pages);
+    }
+  }, [limit]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    const data = users.slice(0, limit);
+    setUserData(data);
+  }, [totalPage]);
+
+  useEffect(() => {
+    if (currentPage) {
+      setUserData(() =>
+        users.slice((currentPage - 1) * limit, currentPage * limit),
+      );
+    }
+  }, [currentPage]);
+
+  const onPageChange = ({ type }) => {
+    console.log("current page ", currentPage, totalPage);
+    const curPage = currentPage;
+    if (type == "prev") {
+      if (curPage == 1) return;
+      setCurrentPage((p) => p - 1);
+    } else {
+      if (curPage == totalPage) return;
+      setCurrentPage((p) => p + 1);
+    }
+  };
+  return (
+    <div>
+      <h1>{message}</h1>
+      <table>
+        <thead>
+          <tr>
+            {[
+              { label: "ID", key: "id" },
+              { label: "Name", key: "name" },
+              { label: "Age", key: "age" },
+              { label: "Occupation", key: "occupation" },
+            ].map(({ label, key }) => (
+              <th key={key}>{label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {user.map(({ id, name, age, occupation }) => (
+            <tr key={id}>
+              <td>{id}</td>
+              <td>{name}</td>
+              <td>{age}</td>
+              <td>{occupation}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        <button
+          disabled={currentPage == 1 ? true : false}
+          onClick={() => onPageChange({ type: "prev" })}
+        >
+          prev
+        </button>
+        <p>{currentPage}</p>
+        <button
+          disabled={currentPage == totalPage ? true : false}
+          onClick={() => onPageChange({ type: "next" })}
+        >
+          next
+        </button>
+      </div>
+      <input
+        value={limit}
+        type="number"
+        onChange={(e) => {
+          if (e.target.value > 0) setLimit(e.target.value);
+        }}
+      />
+    </div>
+  );
+}
